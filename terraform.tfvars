@@ -1,0 +1,9 @@
+resource_group_name = "aks-resource-group"
+location            = "East US"
+aks_cluster_name    = "aks-cluster"
+dns_prefix          = "aks-cluster"
+node_pool_name      = "default"
+node_count          = 1
+node_vm_size        = "Standard_DS2_v2"
+client_id           = "7d605a47-2fd4-434b-9dbc-13b4b86dfca0"
+client_secret       = "y5C8Q~CY4PP4m2LWo~-aY2wiegfSr0Gj_GDmdac5"

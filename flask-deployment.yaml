@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask-deployment
+  namespace: cdac-project
+  labels:
+    app: flask
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask
+  template:
+    metadata:
+      labels:
+        app: flask
+    spec:
+      containers:
+      - name: flask
+        image: registry.hub.docker.com/harsh2509/python_deploy:%IMAGE_NO%
+        ports:
+        - containerPort: 5000

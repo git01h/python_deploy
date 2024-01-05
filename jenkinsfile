@@ -1,0 +1,96 @@
+node {
+    def app
+    def product = "python_deploy"
+
+    stage('Clean workspace') {
+        echo 'Clean Workspace '
+        cleanWs()
+    }
+    stage('Clone repository') {
+        echo 'Checking out code from Git'
+        checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/git01h/python_deploy.git']])
+    }
+    stage(' AKS with Terraform') {
+    echo 'AKS with Terraform'
+     sh 'terraform init'
+     sh 'terraform apply -auto-approve'
+
+        if (currentBuild.resultIsBetterOrEqualTo('FAILURE')) {
+            error "Terraform execution failed"
+}
+ stage('Build image') {
+        echo 'Build the docker flask image'
+        app = docker.build("harsh2509/python_deploy")
+    }
+    stage('Test image') {
+        echo 'Test the docker flask image'
+        app.inside {
+            sh 'python test.py'
+        }
+    }
+    stage('Push image') {
+    echo 'Push image to Docker Hub'
+    script {
+        // Push the Docker image to Docker Hub with both current build number and "latest" tags
+        docker.withRegistry('https://registry.hub.docker.com', 'docker_cred') {
+            app.push("${env.BUILD_NUMBER}", "latest")
+        }
+    }
+}
+stage('Update the deployment file'){
+    echo 'update the deployment files to re-apply it on deployment'
+     //This stage in the Jenkinsfile is responsible for updating the deployment file (flask-deployment.yaml) by replacing a placeholder (%IMAGE_NO%) with the current build number (${env.BUILD_NUMBER}).
+     sh "sed -i s/%IMAGE_NO%/${env.BUILD_NUMBER}/g flask-deployment.yaml"
+     sh "cat flask-deployment.yaml"
+    }
+    stage('Deploy the flask app') {
+        echo 'Deploy the flask image at AKS'
+        withCredentials([azureServicePrincipal('azure_credentials')]) {
+    sh '''
+                PRODUCT="python_deploy"
+                kubectl version --short --client
+                az aks get-credentials --resource-group $PRODUCT --name $PRODUCT-cluster
+                kubectl get svc
+                echo "Execute the deployment"
+                kubectl get namespace $PRODUCT
+                if [ $? -eq 0 ]; then
+                    echo "namespace $PRODUCT already exists"
+                    kubectl get all -n $PRODUCT
+                else
+                    echo "create $PRODUCT namespace"
+                    kubectl create namespace $PRODUCT
+                fi
+                echo "Apply the deployment"
+                kubectl apply -f flask_deployment.yaml
+                echo "Create the flask service"
+                kubectl apply -f flask_service.yaml
+                sleep 5s
+                echo "\n\n Deployment details \n\n"
+                kubectl get all -n $PRODUCT
+                echo "Deployment done successfully"
+            '''
+}
+}
+stage('Deployment Test') {
+        withCredentials([azureServicePrincipal('azure_credentials')]) {
+            sh '''
+                PRODUCT="python_deploy"
+                echo $PATH
+                kubectl get all -n $PRODUCT
+                sleep 60s
+                EXTERNAL_IP=$(kubectl get service flask-service -n $PRODUCT | awk 'NR==2 {print $4}')
+                STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://${EXTERNAL_IP}:5000)
+                echo $STATUS_CODE
+                if [ $STATUS_CODE -eq 200 ]; then
+                    echo "Deployment done successfully"
+                else
+                    echo "\n\nApplication not responding deployment Failed\n\n "
+                    exit 1
+                fi
+            '''
+        }
+    }
+stage('Clean docker images from local') {
+        sh 'docker rmi $(docker images -q -a) --force | true'
+    }
+    }
