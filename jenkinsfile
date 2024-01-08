@@ -88,40 +88,44 @@ stage('Update the deployment file'){
 // }
 stage('Deploy the flask app') {
     echo 'Deploy the flask image at AKS'
-    
+
     withCredentials([azureServicePrincipal('azure_credentials')]) {
         script {
-            PRODUCT="python_deploy"
+            PRODUCT = "python_deploy"
             
-            // Install kubectl (if not already installed)
-            sh 'command -v kubectl || { curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/; }'
-            
+            // Install kubectl in a user-writable directory
+            sh 'mkdir -p $HOME/bin && curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.29.0/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl $HOME/bin/'
+
+            // Add $HOME/bin to PATH
+            sh 'echo "export PATH=$PATH:$HOME/bin" >> $HOME/.bashrc && source $HOME/.bashrc'
+
             // Azure CLI login
             sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID'
-            
+
             // Set Azure CLI subscription
             sh 'az account set --subscription $AZURE_SUBSCRIPTION_ID'
-            
+
             // Azure AKS cluster credentials
             sh 'az aks get-credentials --resource-group $PRODUCT --name $PRODUCT-cluster'
-            
+
             // Check if namespace exists
             sh 'kubectl get namespace $PRODUCT || kubectl create namespace $PRODUCT'
-            
+
             // Apply deployment and service
             sh 'kubectl apply -f flask_deployment.yaml'
             sh 'kubectl apply -f flask_service.yaml'
-            
+
             // Wait for the deployment to stabilize
             sleep 5
-            
+
             // Display deployment details
             sh 'kubectl get all -n $PRODUCT'
-            
+
             echo "Deployment done successfully"
         }
     }
 }
+
 
 stage('Deployment Test') {
         withCredentials([azureServicePrincipal('azure_credentials')]) {
