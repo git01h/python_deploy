@@ -91,7 +91,7 @@ stage('Deploy the flask app') {
 
     withCredentials([azureServicePrincipal('azure_credentials')]) {
         script {
-            PRODUCT = "aks-resource-group"
+            PRODUCT = "MC_aks-resource-group_aks-cluster_eastus"
 
             // Install kubectl in a user-writable directory
             sh 'mkdir -p $HOME/bin && curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.29.0/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl $HOME/bin/'
