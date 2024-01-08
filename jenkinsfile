@@ -17,19 +17,20 @@ node {
         echo 'Checking out code from Git'
         checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/git01h/python_deploy.git']])
     }
-    stage(' AKS with Terraform') {
+   stage(' AKS with Terraform') {
     echo 'AKS with Terraform'
     withCredentials([azureServicePrincipal(credentialsId: 'AZURE_CREDENTIALS', variable: 'AZURE_CREDS')]) {
         sh """
-            export AZURE_SUBSCRIPTION_ID=\$AZURE_CREDS_SUBSCRIPTION_ID
-            export AZURE_TENANT_ID=\$AZURE_CREDS_TENANT_ID
-            export AZURE_CLIENT_ID=\$AZURE_CREDS_CLIENT_ID
-            export AZURE_CLIENT_SECRET=\$AZURE_CREDS_CLIENT_SECRET
+            export ARM_SUBSCRIPTION_ID=\$AZURE_CREDS_SUBSCRIPTION_ID
+            export ARM_TENANT_ID=\$AZURE_CREDS_TENANT_ID
+            export ARM_CLIENT_ID=\$AZURE_CREDS_CLIENT_ID
+            export ARM_CLIENT_SECRET=\$AZURE_CREDS_CLIENT_SECRET
             terraform init
             terraform apply -auto-approve
         """
     }
 }
+
 
 
 //     stage(' AKS with Terraform') {
