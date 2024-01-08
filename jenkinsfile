@@ -93,7 +93,7 @@ stage('Deploy the flask app') {
         script {
             def RESOURCE_GROUP = "aks-resource-group"
             def AKS_CLUSTER_NAME = "aks-cluster"
-            def NAMESPACE = "python_deploy"
+            def NAMESPACE = "python-deploy"
 
             // Install kubectl in a user-writable directory
             sh 'mkdir -p $HOME/bin && curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl -o $HOME/bin/kubectl && chmod +x $HOME/bin/kubectl'

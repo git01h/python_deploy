@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: flask-service
-  namespace: python_deploy
+  namespace: python-deploy
   labels:
     app: flask
 spec:
