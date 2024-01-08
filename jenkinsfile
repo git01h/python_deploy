@@ -19,12 +19,36 @@ node {
     }
     stage(' AKS with Terraform') {
     echo 'AKS with Terraform'
-     sh 'terraform init'
-     sh 'terraform apply -auto-approve'
+
+    script {
+        withCredentials([azureServicePrincipal('azure_credentials')]) {
+            // Set Azure CLI environment variables
+            env.AZURE_SUBSCRIPTION_ID = credentials('azure_credentials')
+            env.AZURE_TENANT_ID = 'your_tenant_id' // Replace with your actual tenant ID
+
+            // Log in using service principal
+            def azLogin = "az login --service-principal -u ${AZURE_CLIENT_ID} -p ${AZURE_CLIENT_SECRET} --tenant ${AZURE_TENANT_ID}"
+            def terraformInit = 'terraform init'
+            def terraformApply = 'terraform apply -auto-approve'
+
+            // Run commands sequentially in the same shell session
+            sh "${azLogin} && ${terraformInit} && ${terraformApply}"
+        }
 
         if (currentBuild.resultIsBetterOrEqualTo('FAILURE')) {
             error "Terraform execution failed"
+        }
+    }
 }
+
+//     stage(' AKS with Terraform') {
+//     echo 'AKS with Terraform'
+//      sh 'terraform init'
+//      sh 'terraform apply -auto-approve'
+
+//         if (currentBuild.resultIsBetterOrEqualTo('FAILURE')) {
+//             error "Terraform execution failed"
+// }
  stage('Build image') {
         echo 'Build the docker flask image'
         app = docker.build("harsh2509/python_deploy")
