@@ -99,7 +99,7 @@ stage('Deploy the flask app') {
             sh 'mkdir -p $HOME/bin && curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.29.0/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl $HOME/bin/'
 
             // Add $HOME/bin to PATH
-            sh 'echo "export PATH=$PATH:$HOME/bin" >> $HOME/.bashrc && source $HOME/.bashrc'
+            sh 'echo "export PATH=$PATH:$HOME/bin" >> $HOME/.bashrc && source $HOME/.bashrc || true'
 
             // Azure CLI login
             sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID'
