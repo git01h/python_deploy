@@ -33,12 +33,22 @@ node {
         //     sh 'python test.py'
         }
     
-    stage('Push image') {
+//     stage('Push image') {
+//     echo 'Push image to Docker Hub'
+//     script {
+//         // Push the Docker image to Docker Hub with both current build number and "latest" tags
+//         docker.withRegistry('https://registry.hub.docker.com', 'docker_cred') {
+//             app.push("${env.BUILD_NUMBER}", "latest")
+//         }
+//     }
+// }
+stage('Push image') {
     echo 'Push image to Docker Hub'
     script {
         // Push the Docker image to Docker Hub with both current build number and "latest" tags
         docker.withRegistry('https://registry.hub.docker.com', 'docker_cred') {
-            app.push("${env.BUILD_NUMBER}", "latest")
+            docker.image("harsh2509/python_deploy").push("${env.BUILD_NUMBER}")
+            docker.image("harsh2509/python_deploy").push("latest")
         }
     }
 }
