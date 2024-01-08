@@ -25,7 +25,7 @@ node {
 
  stage('Build image') {
         echo 'Build the docker flask image'
-        app = docker.build("harsh2509/python_deploy")
+        //app = docker.build("harsh2509/python_deploy")
     }
     stage('Test image') {
         echo 'Test the docker flask image'
@@ -44,48 +44,85 @@ node {
 // }
 stage('Push image') {
     echo 'Push image to Docker Hub'
-    script {
-        // Push the Docker image to Docker Hub with both current build number and "latest" tags
-        docker.withRegistry('https://registry.hub.docker.com', 'docker_cred') {
-            docker.image("harsh2509/python_deploy").push("${env.BUILD_NUMBER}")
-            docker.image("harsh2509/python_deploy").push("latest")
-        }
-    }
+    // script {
+    //     // Push the Docker image to Docker Hub with both current build number and "latest" tags
+    //     docker.withRegistry('https://registry.hub.docker.com', 'docker_cred') {
+    //         docker.image("harsh2509/python_deploy").push("${env.BUILD_NUMBER}")
+    //         docker.image("harsh2509/python_deploy").push("latest")
+    //     }
+    // }
 }
 stage('Update the deployment file'){
     echo 'update the deployment files to re-apply it on deployment'
      //This stage in the Jenkinsfile is responsible for updating the deployment file (flask-deployment.yaml) by replacing a placeholder (%IMAGE_NO%) with the current build number (${env.BUILD_NUMBER}).
-     sh "sed -i s/%IMAGE_NO%/${env.BUILD_NUMBER}/g flask-deployment.yaml"
-     sh "cat flask-deployment.yaml"
+    //  sh "sed -i s/%IMAGE_NO%/${env.BUILD_NUMBER}/g flask-deployment.yaml"
+    //  sh "cat flask-deployment.yaml"
     }
-    stage('Deploy the flask app') {
-        echo 'Deploy the flask image at AKS'
-        withCredentials([azureServicePrincipal('azure_credentials')]) {
-    sh '''
-                PRODUCT="python_deploy"
-                kubectl version --short --client
-                az aks get-credentials --resource-group $PRODUCT --name $PRODUCT-cluster
-                kubectl get svc
-                echo "Execute the deployment"
-                kubectl get namespace $PRODUCT
-                if [ $? -eq 0 ]; then
-                    echo "namespace $PRODUCT already exists"
-                    kubectl get all -n $PRODUCT
-                else
-                    echo "create $PRODUCT namespace"
-                    kubectl create namespace $PRODUCT
-                fi
-                echo "Apply the deployment"
-                kubectl apply -f flask_deployment.yaml
-                echo "Create the flask service"
-                kubectl apply -f flask_service.yaml
-                sleep 5s
-                echo "\n\n Deployment details \n\n"
-                kubectl get all -n $PRODUCT
-                echo "Deployment done successfully"
-            '''
+//     stage('Deploy the flask app') {
+//         echo 'Deploy the flask image at AKS'
+//         withCredentials([azureServicePrincipal('azure_credentials')]) {
+//     sh '''
+//                 PRODUCT="python_deploy"
+//                 kubectl version --short --client
+//                 az aks get-credentials --resource-group $PRODUCT --name $PRODUCT-cluster
+//                 kubectl get svc
+//                 echo "Execute the deployment"
+//                 kubectl get namespace $PRODUCT
+//                 if [ $? -eq 0 ]; then
+//                     echo "namespace $PRODUCT already exists"
+//                     kubectl get all -n $PRODUCT
+//                 else
+//                     echo "create $PRODUCT namespace"
+//                     kubectl create namespace $PRODUCT
+//                 fi
+//                 echo "Apply the deployment"
+//                 kubectl apply -f flask_deployment.yaml
+//                 echo "Create the flask service"
+//                 kubectl apply -f flask_service.yaml
+//                 sleep 5s
+//                 echo "\n\n Deployment details \n\n"
+//                 kubectl get all -n $PRODUCT
+//                 echo "Deployment done successfully"
+//             '''
+// }
+// }
+stage('Deploy the flask app') {
+    echo 'Deploy the flask image at AKS'
+    
+    withCredentials([azureServicePrincipal('azure_credentials')]) {
+        script {
+            PRODUCT="python_deploy"
+            
+            // Install kubectl (if not already installed)
+            sh 'command -v kubectl || { curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/; }'
+            
+            // Azure CLI login
+            sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID'
+            
+            // Set Azure CLI subscription
+            sh 'az account set --subscription $AZURE_SUBSCRIPTION_ID'
+            
+            // Azure AKS cluster credentials
+            sh 'az aks get-credentials --resource-group $PRODUCT --name $PRODUCT-cluster'
+            
+            // Check if namespace exists
+            sh 'kubectl get namespace $PRODUCT || kubectl create namespace $PRODUCT'
+            
+            // Apply deployment and service
+            sh 'kubectl apply -f flask_deployment.yaml'
+            sh 'kubectl apply -f flask_service.yaml'
+            
+            // Wait for the deployment to stabilize
+            sleep 5
+            
+            // Display deployment details
+            sh 'kubectl get all -n $PRODUCT'
+            
+            echo "Deployment done successfully"
+        }
+    }
 }
-}
+
 stage('Deployment Test') {
         withCredentials([azureServicePrincipal('azure_credentials')]) {
             sh '''
