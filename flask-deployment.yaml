@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: flask-deployment
-  namespace: cdac-project
+  namespace: python_deploy
   labels:
     app: flask
 spec:
