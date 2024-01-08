@@ -96,7 +96,7 @@ stage('Deploy the flask app') {
     def NAMESPACE = "python_deploy" // Updated namespace name
 
     // Install kubectl in a user-writable directory
-    sh 'mkdir -p $HOME/bin && curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.29.0/bin/linux/amd64/kubectl && chmod +x $HOME/bin/kubectl'
+    sh 'mkdir -p $HOME/bin && curl -LO "https://storage.googleapis.com/kubernetes-release/release/v1.20.5/bin/linux/amd64/kubectl" && chmod +x $HOME/bin/kubectl'
 
     // Add $HOME/bin to PATH
     sh """
