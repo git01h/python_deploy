@@ -1,6 +1,13 @@
 node {
     def app
     def product = "python_deploy"
+    environment {
+    // Define environment variables for Azure credentials
+    ARM_SUBSCRIPTION_ID = credentials('SUBSCRIPTION_ID')
+    ARM_TENANT_ID = credentials('TENANT_ID')
+    ARM_CLIENT_ID = credentials('CLIENT_ID')
+    ARM_CLIENT_SECRET = credentials('CLIENT_SECRET')
+    }
 
     stage('Clean workspace') {
         echo 'Clean Workspace '
