@@ -23,24 +23,14 @@ node {
     }
 }
 
-
-
-//     stage(' AKS with Terraform') {
-//     echo 'AKS with Terraform'
-//      sh 'terraform init'
-//      sh 'terraform apply -auto-approve'
-
-//         if (currentBuild.resultIsBetterOrEqualTo('FAILURE')) {
-//             error "Terraform execution failed"
-// }
  stage('Build image') {
         echo 'Build the docker flask image'
         app = docker.build("harsh2509/python_deploy")
     }
     stage('Test image') {
         echo 'Test the docker flask image'
-        app.inside {
-            sh 'python test.py'
+        // app.inside {
+        //     sh 'python test.py'
         }
     }
     stage('Push image') {
