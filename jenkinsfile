@@ -114,7 +114,7 @@ stage('Deploy the flask app') {
             sh "az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER_NAME"
 
             // Check if namespace exists
-            sh 'kubectl get namespace $NAMESPACE && kubectl create namespace $NAMESPACE'
+            sh 'kubectl get namespace $NAMESPACE && kubectl create namespace python_deploy'
 
             // Apply deployment and service with the updated namespace
             sh "kubectl apply -f flask-deployment.yaml -n $NAMESPACE"
