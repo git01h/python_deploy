@@ -129,7 +129,7 @@ stage('Deploy the flask app') {
     echo "Deployment done successfully"
 }
 }
-
+}
 stage('Deployment Test') {
         withCredentials([azureServicePrincipal('azure_credentials')]) {
             sh '''
