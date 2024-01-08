@@ -90,39 +90,44 @@ stage('Deploy the flask app') {
     echo 'Deploy the flask image at AKS'
 
     withCredentials([azureServicePrincipal('azure_credentials')]) {
-        script {
-            // Install kubectl using predefined tool installation
-            tool name: 'kubectl', type: 'org.jenkinsci.plugins.tools.ToolInstallation', label: ''
+       script {
+    def RESOURCE_GROUP = "aks-resource-group"
+    def AKS_CLUSTER_NAME = "aks-cluster"
+    def NAMESPACE = "python_deploy" // Updated namespace name
 
-            def RESOURCE_GROUP = "aks-resource-group"
-            def AKS_CLUSTER_NAME = "aks-cluster"
-            def NAMESPACE = "python_deploy"
+    // Install kubectl in a user-writable directory
+    sh 'mkdir -p $HOME/bin && curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.29.0/bin/linux/amd64/kubectl && chmod +x $HOME/bin/kubectl'
 
-            // Azure CLI login
-            sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID'
+    // Add $HOME/bin to PATH
+    sh """
+        export PATH=$PATH:$HOME/bin
+        echo 'export PATH=$PATH:$HOME/bin' >> $HOME/.bashrc
+    """
 
-            // Set Azure CLI subscription
-            sh 'az account set --subscription $AZURE_SUBSCRIPTION_ID'
+    // Azure CLI login
+    sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID'
 
-            // Azure AKS cluster credentials
-            sh "az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER_NAME"
+    // Set Azure CLI subscription
+    sh 'az account set --subscription $AZURE_SUBSCRIPTION_ID'
 
-            // Check if namespace exists
-            sh 'kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE'
+    // Azure AKS cluster credentials
+    sh "az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER_NAME"
 
-            // Apply deployment and service with the updated namespace
-            sh "kubectl apply -f flask_deployment.yaml -n $NAMESPACE"
-            sh "kubectl apply -f flask_service.yaml -n $NAMESPACE"
+    // Check if namespace exists
+    sh 'kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE'
 
-            // Wait for the deployment to stabilize
-            sleep 5
+    // Apply deployment and service with the updated namespace
+    sh "kubectl apply -f flask_deployment.yaml -n $NAMESPACE"
+    sh "kubectl apply -f flask_service.yaml -n $NAMESPACE"
 
-            // Display deployment details
-            sh "kubectl get all -n $NAMESPACE"
+    // Wait for the deployment to stabilize
+    sleep 5
 
-            echo "Deployment done successfully"
-        }
-    }
+    // Display deployment details
+    sh "kubectl get all -n $NAMESPACE"
+
+    echo "Deployment done successfully"
+}
 }
 
 stage('Deployment Test') {
