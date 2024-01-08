@@ -117,8 +117,8 @@ stage('Deploy the flask app') {
             sh 'kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE'
 
             // Apply deployment and service with the updated namespace
-            sh "kubectl apply -f flask_deployment.yaml -n $NAMESPACE"
-            sh "kubectl apply -f flask_service.yaml -n $NAMESPACE"
+            sh "kubectl apply -f flask-deployment.yaml -n $NAMESPACE"
+            sh "kubectl apply -f flask-service.yaml -n $NAMESPACE"
 
             // Wait for the deployment to stabilize
             sleep 5
