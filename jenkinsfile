@@ -18,7 +18,7 @@ node {
             export ARM_CLIENT_ID=\$AZURE_CREDS_CLIENT_ID
             export ARM_CLIENT_SECRET=\$AZURE_CREDS_CLIENT_SECRET
             terraform init
-            // terraform apply -auto-approve
+            
         """
     }
 }
