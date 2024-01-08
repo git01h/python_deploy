@@ -129,10 +129,10 @@ stage('Deploy the flask app') {
 stage('Deployment Test') {
         withCredentials([azureServicePrincipal('azure_credentials')]) {
             sh '''
-                PRODUCT="python_deploy"
+                PRODUCT="python-deploy"
                 echo $PATH
                 kubectl get all -n $PRODUCT
-                sleep 60s
+                sleep 30s
                 EXTERNAL_IP=$(kubectl get service flask-service -n $PRODUCT | awk 'NR==2 {print $4}')
                 STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://${EXTERNAL_IP}:5000)
                 echo $STATUS_CODE
