@@ -92,7 +92,7 @@ stage('Deploy the flask app') {
     withCredentials([azureServicePrincipal('azure_credentials')]) {
         script {
             PRODUCT = "python_deploy"
-            
+
             // Install kubectl in a user-writable directory
             sh 'mkdir -p $HOME/bin && curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.29.0/bin/linux/amd64/kubectl && chmod +x kubectl && mv kubectl $HOME/bin/'
 
@@ -106,10 +106,10 @@ stage('Deploy the flask app') {
             sh 'az account set --subscription $AZURE_SUBSCRIPTION_ID'
 
             // Azure AKS cluster credentials
-            sh 'az aks get-credentials --resource-group $PRODUCT --name $PRODUCT-cluster'
+            sh "az aks get-credentials --resource-group $PRODUCT --name ${PRODUCT}-cluster"
 
             // Check if namespace exists
-            sh 'kubectl get namespace $PRODUCT || kubectl create namespace $PRODUCT'
+            sh "kubectl get namespace $PRODUCT || kubectl create namespace $PRODUCT"
 
             // Apply deployment and service
             sh 'kubectl apply -f flask_deployment.yaml'
@@ -119,12 +119,13 @@ stage('Deploy the flask app') {
             sleep 5
 
             // Display deployment details
-            sh 'kubectl get all -n $PRODUCT'
+            sh "kubectl get all -n $PRODUCT"
 
             echo "Deployment done successfully"
         }
     }
 }
+
 
 
 stage('Deployment Test') {
