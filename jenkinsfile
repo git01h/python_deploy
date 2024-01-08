@@ -103,34 +103,25 @@ stage('Deploy the flask app') {
                 export PATH=$HOME/bin:$PATH
                 echo 'export PATH=$HOME/bin:$PATH' >> $HOME/.bashrc
             """
-
             // Azure CLI login
             sh 'az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID'
-
             // Set Azure CLI subscription
             sh 'az account set --subscription $AZURE_SUBSCRIPTION_ID'
-
             // Azure AKS cluster credentials
             sh "az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER_NAME"
-
             // Check if namespace exists
             def namespaceExists = sh(script: "kubectl get namespace $NAMESPACE", returnStatus: true) == 0
-
             if (!namespaceExists) {
                 // Create namespace if it doesn't exist
                 sh "kubectl create namespace $NAMESPACE"
             }
-
             // Apply deployment and service with the updated namespace
             sh "kubectl apply -f flask-deployment.yaml -n $NAMESPACE"
             sh "kubectl apply -f flask-service.yaml -n $NAMESPACE"
-
             // Wait for the deployment to stabilize
             sleep 5
-
             // Display deployment details
             sh "kubectl get all -n $NAMESPACE"
-
             echo "Deployment done successfully"
         }
     }
