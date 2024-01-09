@@ -25,7 +25,7 @@ node {
 
  stage('Build image') {
         echo 'Build the docker flask image'
-        app = docker.build("harsh2509/python_deploy")
+        //app = docker.build("harsh2509/python_deploy")
     }
     stage('Test image') {
         echo 'Test the docker flask image'
@@ -44,19 +44,19 @@ node {
 // }
 stage('Push image') {
     echo 'Push image to Docker Hub'
-    script {
-        // Push the Docker image to Docker Hub with both current build number and "latest" tags
-        docker.withRegistry('https://registry.hub.docker.com', 'docker_cred') {
-            docker.image("harsh2509/python_deploy").push("${env.BUILD_NUMBER}")
-            docker.image("harsh2509/python_deploy").push("latest")
-        }
-    }
+    // script {
+    //     // Push the Docker image to Docker Hub with both current build number and "latest" tags
+    //     docker.withRegistry('https://registry.hub.docker.com', 'docker_cred') {
+    //         docker.image("harsh2509/python_deploy").push("${env.BUILD_NUMBER}")
+    //         docker.image("harsh2509/python_deploy").push("latest")
+    //     }
+    // }
 }
 stage('Update the deployment file'){
     echo 'update the deployment files to re-apply it on deployment'
     // This stage in the Jenkinsfile is responsible for updating the deployment file (flask-deployment.yaml) by replacing a placeholder (%IMAGE_NO%) with the current build number (${env.BUILD_NUMBER}).
-     sh "sed -i s/%IMAGE_NO%/${env.BUILD_NUMBER}/g flask-deployment.yaml"
-     sh "cat flask-deployment.yaml"
+    // sh "sed -i s/%IMAGE_NO%/${env.BUILD_NUMBER}/g flask-deployment.yaml"
+    // sh "cat flask-deployment.yaml"
     }
 //     stage('Deploy the flask app') {
 //         echo 'Deploy the flask image at AKS'
