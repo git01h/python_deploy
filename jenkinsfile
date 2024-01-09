@@ -54,7 +54,7 @@ stage('Push image') {
 }
 stage('Update the deployment file'){
     echo 'update the deployment files to re-apply it on deployment'
-     This stage in the Jenkinsfile is responsible for updating the deployment file (flask-deployment.yaml) by replacing a placeholder (%IMAGE_NO%) with the current build number (${env.BUILD_NUMBER}).
+    // This stage in the Jenkinsfile is responsible for updating the deployment file (flask-deployment.yaml) by replacing a placeholder (%IMAGE_NO%) with the current build number (${env.BUILD_NUMBER}).
      sh "sed -i s/%IMAGE_NO%/${env.BUILD_NUMBER}/g flask-deployment.yaml"
      sh "cat flask-deployment.yaml"
     }
