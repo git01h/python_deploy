@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask,render_template
 from jinja2 import Markup, escape
 
 app = Flask(__name__)
